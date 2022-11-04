@@ -11,6 +11,7 @@ using namespace cv;
 using namespace std;
 
 
+/*Funcion para cargar la imagen con opencv*/
 Mat obtenerImagen(char NombreImagen[]) {
 
 	Mat imagen; // Matriz que contiene nuestra imagen sin importar el formato
@@ -46,19 +47,27 @@ void mostrarImagen2(Mat imagen) {
 	namedWindow("practica3", WINDOW_AUTOSIZE);
 	imshow("practica3", imagen);
 }
+
+/*FUncion que genera el kernel gaussiano de manera dinamica*/
 double ** generacionKernel(double sigma, int kernel) {
 	//Mat matriz; 
 	Mat matriz(kernel, kernel, CV_8UC1);
+
+	//empezamos desde el centro
 	int centro = (kernel - 1) / 2; 
 
+	//creamos la matriz para el kernel
 	double ** matrizprueba = new double*[kernel];
 	double ** matrizFinal = new double* [kernel];
 
 	double suma = 0; 
 
+	//recorrido para llenar la matriz
 	for (int i = 0;i < kernel;i++) {
-		matrizprueba[i] = new double[kernel];
+		matrizprueba[i] = new double[kernel]; 
 		for (int j = 0; j < kernel; j++){
+			//como iniciamos desde el centro, para iniciar de arriba abajo hacemos las
+			//siguientes operaciones
 			int posx = i - centro; 
 			int posy = (j - centro)*-1; 
 		
@@ -76,7 +85,7 @@ double ** generacionKernel(double sigma, int kernel) {
 	}
 	cout << "Suma " <<suma << "\n";
 	cout << "---------------------------------------------------------------\n";
-	//normalizacion
+	//normalizacion del kernel gaussiano, con respecto a la suma
 	for (int i = 0;i < kernel;i++) {
 		matrizFinal[i] = new double[kernel];
 		for (int j = 0; j < kernel; j++) {
@@ -90,16 +99,22 @@ double ** generacionKernel(double sigma, int kernel) {
 	return matrizFinal; 
 }
 
+/*Función que pasa el kernel por la imagen y hace la convolución*/
 double operacionConvolucion(int i, int j, int kernel, int exceso, Mat imagen, double** matriz) {
 	double resultado = 0;
 	/*Hacemos el filtro*/;
 	//recorremos la matriz
+
+	
 	for (int k = 0; k < kernel; k++) {
 		for (int l = 0; l < kernel; l++) {
 
 			//valor de la imagen con bordes
 			int valorImagen = imagen.at<uchar>(Point(j - exceso + l, i - exceso + k));
 
+			//se multplica el valor del kernel por el de la imagen, tomando el centro
+			//como el punto en el que estamos, y se hacen las operaciones para que
+			//vayan correspondiente los pixeles de la imagen a los del kernel
 			resultado += (matriz[k][l] * valorImagen);
 
 			//resultado += (matriz[k][l]);
@@ -112,6 +127,7 @@ double operacionConvolucion(int i, int j, int kernel, int exceso, Mat imagen, do
 	return resultado;
 }
 
+/*Función que recorre toda la imagen para pasar a la convolución*/
 Mat convolucion(Mat imagen, int kernel, double** matriz) {
 	//imagen chida con bordes
 	int rows = imagen.rows;
@@ -136,22 +152,8 @@ Mat convolucion(Mat imagen, int kernel, double** matriz) {
 				//quita los bordes de arriba y abajo
 				if ((j < (cols -exceso ) && j >= exceso)) {
 					///
-					//int resultado = operacionConvolucion(i, j, kernel, exceso, imagen, matriz);
-					double resultado = 0;
-					/*Hacemos el filtro*/;
-					//recorremos la matriz
-					for (int k = 0; k < kernel; k++) {
-						for (int l = 0; l < kernel; l++) {
-
-
-							//valor de la imagen con bordes
-							int valorImagen = imagen.at<uchar>(Point(j - exceso + l, i - exceso + k));
-
-							resultado += (matriz[k][l] * valorImagen);
-
-							//resultado += (matriz[k][l]);
-						}
-					}
+					int resultado = operacionConvolucion(i, j, kernel, exceso, imagen, matriz);
+					
 
 					//resultado = resultado / pow(kernel, 2);
 
@@ -175,13 +177,14 @@ Mat convolucion(Mat imagen, int kernel, double** matriz) {
 }
 
 
-
+/*Esta función genera un borde a la imagen, con respecto al exceso que nos de el kernel*/
 Mat bordearImagen(Mat imagen,int kernel) {
 	int rows = imagen.rows;
 	int cols = imagen.cols;
-	int exceso = (kernel - 1) / 2;
+	int exceso = (kernel - 1) / 2; //exceso que sobresale de los bordes
 
 	Mat grises(rows , cols , CV_8UC1);
+	//la imagen con el exceso multiplicado x2 por izquierda derecha, arriba y abajo
 	Mat grande(rows + exceso*2, cols + exceso*2, CV_8UC1);
 
 	Mat filtrada(rows, cols, CV_8UC1);
@@ -190,20 +193,22 @@ Mat bordearImagen(Mat imagen,int kernel) {
 	printf(" A %d \n", grande.rows);
 	//GaussianBlur(imagen, ImagenFiltrada, Size(3, 3), 0, 0, 0);
 
-	//convierte a escala de grises
+	//si la función está en escala de grises no pasa nada
 	if (imagen.type() == CV_8UC1) {
 		grises = imagen; 
 	}
-	else {
+	else { //si no esta en escala de grises, la pasamos a escala de grises
 		cvtColor(imagen, grises, COLOR_BGR2GRAY);
 	}
 	
 
 	double rojo, azul, verde, gris_p;
 
+	//recorremos hasta el exceso que tendremos de nuestra imagen bordeada
 	for (int i = 0; i < rows + exceso*2 ; i++) {
 		for (int j = 0; j < cols + exceso*2; j++) {
 			
+			//si sobre pasa los limites de la imagen le asignamos un negro como borde
 			if ( i > rows + exceso - 1 || i < exceso) { 
 				grande.at<uchar>(Point(j, i)) = uchar(0);
 				//cout << "entra\n";
@@ -241,12 +246,17 @@ Mat bordearImagen(Mat imagen,int kernel) {
 	return grande; 
 
 }
+
+/*
+Función que ecualiza la imagen, esta función normaliza el histograma de la imagen
+Haciendo uso del maximo y el minimo valor que sea diferente a 0
+*/
 Mat ecualizacion(Mat imagen) {
 	int rows = imagen.rows;
 	int cols = imagen.cols;
 	Mat ecualizada(rows, cols, CV_8UC1);
 
-
+	//arreglo para obtener los valores de la imagen en 1 dimensión
 	double* flateada = new double [rows*cols];
 	//sumamos la 1 con la anterior
 
@@ -264,6 +274,7 @@ Mat ecualizacion(Mat imagen) {
 	//obtener el maximo y minimo
 	double max=0, min=10000;
 	for (int i = 0; i < rows*cols; i++){
+		//obteniendo el minimo diferente a 0
 		if (flateada[i] < min && flateada[i]!=0) {
 			min = flateada[i];
 		}
@@ -272,6 +283,7 @@ Mat ecualizacion(Mat imagen) {
 		}
 	}
 	//(cdf_m - cdf_m.min())*255/(cdf_m.max()-cdf_m.min())
+	//usamos una formula para normalizar la imagen
 	c = 0; 
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
@@ -287,6 +299,11 @@ Mat ecualizacion(Mat imagen) {
 	return ecualizada; 
 }
 
+/*
+Esta función genera el filtro de sobel con respecto a la magnitud
+el argumento de absoluto, si es true usa la formula |gx| + |gy|, sino usa la raiz
+
+*/
 Mat sobelXY(Mat x, Mat y, bool absoluto=false) {
 	int rows = x.rows;
 	int cols = y.cols;
@@ -295,9 +312,7 @@ Mat sobelXY(Mat x, Mat y, bool absoluto=false) {
 	Mat filtro_total(rows, cols, CV_8UC1);
 
 	//Mat prueba(rows, cols, CV_8UC1);
-	
-	int umbral = 120; 
-	int umbral_bajo = 5; 
+
 	double magnitud, direccion; 
 	double valor_x, valor_y; 
 	for (int i = 0; i < rows; i++){
@@ -307,7 +322,7 @@ Mat sobelXY(Mat x, Mat y, bool absoluto=false) {
 			valor_y = y.at<uchar>(Point(j, i));
 			if (absoluto) {
 				magnitud = abs(valor_x) + abs(valor_y);
-			}else {
+			}else { //si el argumento de absoluto es falso usa la raiz
 				magnitud = sqrt(pow(valor_x, 2) + pow(valor_y, 2));		
 			}
 			magnitud = static_cast<int>(magnitud); 
@@ -316,7 +331,7 @@ Mat sobelXY(Mat x, Mat y, bool absoluto=false) {
 			}else {
 				magnitud = 0; 
 			}*/
-
+			//asignamos la magnutd a cada punto
 			filtro_total.at<uchar>(Point(j, i)) = uchar(magnitud); 
 			direccion = atan(valor_y/valor_x);
 			//prueba.at<uchar>(Point(j, i)) = uchar(direccion);
@@ -328,6 +343,10 @@ Mat sobelXY(Mat x, Mat y, bool absoluto=false) {
 	return filtro_total; 
 }
 
+/*
+Esta función busca la dirección a la que va el pixel, es decir hacia que vecino va,
+hace el non-max
+*/
 Mat canny(Mat x, Mat y) {
 	int rows = x.rows;
 	int cols = x.cols;
@@ -336,6 +355,8 @@ Mat canny(Mat x, Mat y) {
 	double  direccion;
 	double valor_x, valor_y, valor_x_a, valor_x_s, valor_y_a, valor_y_s;
 	double magnitud, magnitud_anterior, magnitud_siguiente;
+	//recorremos la imagen, quitando un pixel de cada lado para tener consistencia en 
+	//las operaciones
 	for (int i = 1; i < rows - 1; i++) {
 		for (int j = 1; j < cols - 1; j++) {
 			//valores actuales
@@ -422,7 +443,9 @@ Mat canny(Mat x, Mat y) {
 }
 
 
-
+/*Función que crea el filtro sobel y el filtro canny
+Dentro de esta se inicializan los valores de los kernel para gx y gy
+*/
 Mat * filtroSobel(Mat imagenGaus) {
 
 	double ** kernel_x = new double* [3];
@@ -431,6 +454,7 @@ Mat * filtroSobel(Mat imagenGaus) {
 		kernel_x[i] = new double[3];
 		kernel_y[i] = new double[3];
 	}
+	//rellenamos los kernels
 	kernel_x[0][0] = -1;
 	kernel_x[0][1] = 0;
 	kernel_x[0][2] = 1;
@@ -455,9 +479,10 @@ Mat * filtroSobel(Mat imagenGaus) {
 	kernel_y[2][1] = 2;
 	kernel_y[2][2] = 1;
 
-	//obtenemos la bordeada
+	//obtenemos la bordeada para poder hacer la convolución
 	Mat bordeada = bordearImagen(imagenGaus, 3);
 
+	//obtenemos los resultados al convolucionar las imagenes
 	Mat gx = convolucion(bordeada, 3, kernel_x);
 	Mat gy = convolucion(bordeada, 3, kernel_x);
 
@@ -471,7 +496,7 @@ Mat * filtroSobel(Mat imagenGaus) {
 
 	//mostrarImagen(filtro_total);
 	//mostrarImagen(otra);
-	
+	//creamos un arreglo para regresar las 4 imagenes
 	Mat* imagenes = new Mat[4];
 	imagenes[0] = gx; 
 	imagenes[1] = gy;
@@ -483,6 +508,10 @@ Mat * filtroSobel(Mat imagenGaus) {
 
 }
 
+/*
+Esta función obtiene la imagen ya lista para umbralar alto o bajo, estos valores
+son porcentajes, el alto del maximo y el bajo del umbral alto
+*/
 Mat umbralado(Mat imagen, double umbral_alto, double umbral_bajo) {
 	int rows = imagen.rows;
 	int cols = imagen.cols;
@@ -499,12 +528,15 @@ Mat umbralado(Mat imagen, double umbral_alto, double umbral_bajo) {
 			}
 		}
 	}
-	//sacamos el umbral alto
+	//sacamos el umbral alto con respecto al maximo
 	umbral_alto = static_cast<int>( (umbral_alto * maximo) / 100 );
+	//sacamos el umbral bajo con respecto al umbral alto
 	umbral_bajo = static_cast<int>( (umbral_alto * umbral_bajo) / 100);
 
 
-
+	//los balores menores al umbral los despreciamos
+	//los valores entre el bajo y el alto los mantenemos
+	//los valores mayores al umbral alto los hacemos 255
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
 			valor = imagen.at<uchar>(Point(j, i));
@@ -525,6 +557,9 @@ Mat umbralado(Mat imagen, double umbral_alto, double umbral_bajo) {
 	return umbralada; 
 }
 
+/*Esta funcion le hace un umbral a la imagen
+Pero solo en el caso en el que alguno de sus vecinos tenga un pixel fuerte
+*/
 Mat umbral_final(Mat imagen, int umbral) {
 	int rows = imagen.rows;
 	int cols = imagen.cols;
@@ -538,16 +573,17 @@ Mat umbral_final(Mat imagen, int umbral) {
 	double valor;
 	for (int i = 1; i < rows - 1; i++) {
 		for (int j = 1; j < cols - 1; j++) {
-			vecino_i  = imagen.at<uchar>(Point(j, i-1));
-			vecino_d  = imagen.at<uchar>(Point(j, i + 1));
-			vecino_ar = imagen.at<uchar>(Point(j + 1, i));
-			vecino_ab = imagen.at<uchar>(Point(j - 1, i));
+			vecino_i  = imagen.at<uchar>(Point(j, i-1)); //izquierda
+			vecino_d  = imagen.at<uchar>(Point(j, i + 1)); //derecha
+			vecino_ar = imagen.at<uchar>(Point(j + 1, i)); //arriba
+			vecino_ab = imagen.at<uchar>(Point(j - 1, i)); //abajo
 	
-			vecino_i_ar = imagen.at<uchar>(Point(j + 1, i - 1));
-			vecino_d_ar = imagen.at<uchar>(Point(j + 1 , i + 1 ));
-			vecino_i_ab = imagen.at<uchar>(Point(j - 1, i - 1 ));
-			vecino_d_ab = imagen.at<uchar>(Point(j - 1, i + 1 ));
+			vecino_i_ar = imagen.at<uchar>(Point(j + 1, i - 1)); //izquierda arriba
+			vecino_d_ar = imagen.at<uchar>(Point(j + 1 , i + 1 )); // derecha arriba
+			vecino_i_ab = imagen.at<uchar>(Point(j - 1, i - 1 )); //izquierda abajo
+			vecino_d_ab = imagen.at<uchar>(Point(j - 1, i + 1 )); //derecha abajo
 
+			//si alguno es mayor al umbral que dimos, mantenemos el valor y sino lo despreciamos
 			if (vecino_i >= umbral || vecino_d >= umbral || vecino_ar >= umbral 
 				|| vecino_ab >= umbral|| vecino_i_ar >= umbral 
 				||  vecino_d_ar >= umbral || vecino_i_ab >= umbral 
@@ -563,6 +599,7 @@ Mat umbral_final(Mat imagen, int umbral) {
 	return umbralada;
 }
 
+/*Función main, aqui se obtienen las imagenes y se muestran*/
 int main() {
 
 	char NombreImagen[] = "lena.png";
@@ -595,9 +632,9 @@ int main() {
 	Mat filtrada = convolucion(bordeada, kernel, matriz_kernel);
 
 	//Mat sobel = filtroSobel(filtrada);
-
+	//imagen ecualizada 
 	Mat ecualizada = ecualizacion(filtrada); 
-
+	//imagenes obtenidas del sobel mas la del non-max
 	Mat *  sobel_imgs = filtroSobel(ecualizada);
 	/*Mostrar las imagenes*/
 
