@@ -276,7 +276,9 @@ Mat ecualizacion(Mat imagen) {
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
 
-			ecualizada.at<uchar>(Point(j, i)) = (flateada[c]-min)*255/(max-min);
+			double valor = (flateada[c] - min) * 255 / (max - min); 
+			valor = static_cast<int>(valor);
+			ecualizada.at<uchar>(Point(j, i)) = uchar(valor);
 			c++; 
 		}
 	}
@@ -309,11 +311,11 @@ Mat sobelXY(Mat x, Mat y, bool absoluto=false) {
 				magnitud = sqrt(pow(valor_x, 2) + pow(valor_y, 2));		
 			}
 			magnitud = static_cast<int>(magnitud); 
-			if (magnitud > umbral) {
+			/*if (magnitud > umbral) {
 				magnitud = 255; 
 			}else {
 				magnitud = 0; 
-			}
+			}*/
 
 			filtro_total.at<uchar>(Point(j, i)) = uchar(magnitud); 
 			direccion = atan(valor_y/valor_x);
@@ -419,7 +421,9 @@ Mat canny(Mat x, Mat y) {
 	return vecinos;
 }
 
-Mat filtroSobel(Mat imagenGaus) {
+
+
+Mat * filtroSobel(Mat imagenGaus) {
 
 	double ** kernel_x = new double* [3];
 	double ** kernel_y = new double* [3];
@@ -462,18 +466,99 @@ Mat filtroSobel(Mat imagenGaus) {
 	Mat otra = canny(gx, gy); 
 
 
-	mostrarImagen(gx); 
-	mostrarImagen(gy);
+	//mostrarImagen(gx); 
+	//mostrarImagen(gy);
 
-	mostrarImagen(filtro_total);
-	mostrarImagen(otra);
+	//mostrarImagen(filtro_total);
+	//mostrarImagen(otra);
+	
+	Mat* imagenes = new Mat[4];
+	imagenes[0] = gx; 
+	imagenes[1] = gy;
+	imagenes[2] = filtro_total;
+	imagenes[3] = otra; 
 
-
-	return bordeada; 
+	return imagenes; 
 
 
 }
 
+Mat umbralado(Mat imagen, double umbral_alto, double umbral_bajo) {
+	int rows = imagen.rows;
+	int cols = imagen.cols;
+	Mat umbralada(rows, cols, CV_8UC1);
+
+	double maximo = 0; 
+	double valor; 
+	//obtenemos el maximo
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			valor = imagen.at<uchar>(Point(j, i)); 
+			if (maximo < valor) {
+				maximo = valor; 
+			}
+		}
+	}
+	//sacamos el umbral alto
+	umbral_alto = static_cast<int>( (umbral_alto * maximo) / 100 );
+	umbral_bajo = static_cast<int>( (umbral_alto * umbral_bajo) / 100);
+
+
+
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			valor = imagen.at<uchar>(Point(j, i));
+			if (valor <= umbral_bajo) {
+				umbralada.at<uchar>(Point(j, i)) = uchar(0);
+			}
+			else if (valor < umbral_alto) {
+				umbralada.at<uchar>(Point(j, i)) = uchar(valor);
+			}
+			else {
+				umbralada.at<uchar>(Point(j, i)) = uchar(255);
+			}
+		}
+	}
+
+
+
+	return umbralada; 
+}
+
+Mat umbral_final(Mat imagen, int umbral) {
+	int rows = imagen.rows;
+	int cols = imagen.cols;
+	Mat umbralada(rows, cols, CV_8UC1);
+	//umbral mayor a 130
+
+	double vecino_i, vecino_d, vecino_ar, vecino_ab;
+	double vecino_i_ar, vecino_d_ar, vecino_i_ab, vecino_d_ab;
+
+	double valor;
+	for (int i = 1; i < rows - 1; i++) {
+		for (int j = 1; j < cols - 1; j++) {
+			vecino_i  = imagen.at<uchar>(Point(j, i-1));
+			vecino_d  = imagen.at<uchar>(Point(j, i + 1));
+			vecino_ar = imagen.at<uchar>(Point(j + 1, i));
+			vecino_ab = imagen.at<uchar>(Point(j - 1, i));
+	
+			vecino_i_ar = imagen.at<uchar>(Point(j + 1, i - 1));
+			vecino_d_ar = imagen.at<uchar>(Point(j + 1 , i + 1 ));
+			vecino_i_ab = imagen.at<uchar>(Point(j - 1, i - 1 ));
+			vecino_d_ab = imagen.at<uchar>(Point(j - 1, i + 1 ));
+			if (vecino_i >= umbral || vecino_d >= umbral || vecino_ar >= umbral || vecino_ab >= umbral
+				|| vecino_i_ar >= umbral ||  vecino_d_ar >= umbral || vecino_i_ab >= umbral 
+				||  vecino_d_ab >= umbral) {
+				//en 255 o el valor
+				umbralada.at<uchar>(Point(j, i)) = uchar(255);
+			}
+			else {
+				umbralada.at<uchar>(Point(j, i )) =uchar(0);
+			}
+		}
+	}
+	return umbralada;
+}
 
 int main() {
 
@@ -510,8 +595,17 @@ int main() {
 
 	Mat ecualizada = ecualizacion(filtrada); 
 
-	Mat sobel = filtroSobel(ecualizada);
+	Mat *  sobel_imgs = filtroSobel(ecualizada);
 	/*Mostrar las imagenes*/
+
+	Mat gx = sobel_imgs[0]; 
+	Mat gy = sobel_imgs[1];
+	Mat sobel = sobel_imgs[2];
+	Mat canny_img = sobel_imgs[3];
+
+	Mat umbralada = umbralado(canny_img, 70, 35);
+
+	Mat umbralada_final = umbral_final(umbralada, 120);
 
 	imshow("original", imagen);
 	printf("Original: %dx%d\n", imagen.cols, imagen.rows);
@@ -527,6 +621,25 @@ int main() {
 	printf("Ecualizada: %dx%d\n", ecualizada.cols, ecualizada.rows);
 
 	waitKey(0); 
+	imshow("Gx", gx);
+	printf("Gx: %dx%d\n", gx.cols, gx.rows);
+
+	imshow("Gy", gy);
+	printf("Gy: %dx%d\n", gy.cols, gy.rows);
+
+	imshow("Sobel |G|", sobel);
+	printf("|G|: %dx%d\n", sobel.cols, sobel.rows);
+
+	imshow("Canny", canny_img);
+	printf("Canny: %dx%d\n", canny_img.cols, canny_img.rows);
+
+	imshow("Umbralada", umbralada);
+	printf("Umbralada: %dx%d\n", umbralada.cols, umbralada.rows);
+
+	imshow("Umbralada final", umbralada_final);
+	printf("Umbralada final: %dx%d\n", umbralada_final.cols, umbralada_final.rows);
+
+	waitKey(0);
 	
 	return 1;
 }
