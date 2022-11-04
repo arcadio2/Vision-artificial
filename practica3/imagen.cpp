@@ -326,6 +326,99 @@ Mat sobelXY(Mat x, Mat y, bool absoluto=false) {
 	return filtro_total; 
 }
 
+Mat canny(Mat x, Mat y) {
+	int rows = x.rows;
+	int cols = x.cols;
+	Mat vecinos(rows, cols, CV_8UC1);
+
+	double  direccion;
+	double valor_x, valor_y, valor_x_a, valor_x_s, valor_y_a, valor_y_s;
+	double magnitud, magnitud_anterior, magnitud_siguiente;
+	for (int i = 1; i < rows - 1; i++) {
+		for (int j = 1; j < cols - 1; j++) {
+			//valores actuales
+			valor_x = x.at<uchar>(Point(j, i));
+			valor_y = y.at<uchar>(Point(j, i));
+			magnitud = sqrt(pow(valor_x, 2) + pow(valor_y, 2));
+
+			vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(0));
+
+			direccion = valor_y / valor_x;
+			//izquierda y derecha
+			if (direccion <= tan(22.5) && direccion > tan(-22.5)) {
+				//valores anteriores
+				valor_x_a = x.at<uchar>(Point(j - 1, i));
+				valor_y_a = y.at<uchar>(Point(j - 1, i));
+				//valores siguientes
+				valor_x_s = x.at<uchar>(Point(j + 1, i));
+				valor_y_s = y.at<uchar>(Point(j + 1, i));
+
+
+				magnitud_anterior = sqrt(pow(valor_x_a, 2) + pow(valor_y_a, 2));
+				magnitud_siguiente = sqrt(pow(valor_x_s, 2) + pow(valor_y_s, 2));
+
+				if (magnitud > magnitud_anterior && magnitud > magnitud_siguiente) {
+
+					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud));
+
+				}
+
+			}
+			else if (direccion <= tan(67.5) && direccion > tan(22.5)) {
+				//diagonal izquierda-abajo, diagonal dercha-arriba
+				//valores anteriores
+				valor_x_a = x.at<uchar>(Point(j - 1, i - 1));
+				valor_y_a = y.at<uchar>(Point(j - 1, i - 1));
+				//valores siguientes
+				valor_x_s = x.at<uchar>(Point(j + 1, i + 1));
+				valor_y_s = y.at<uchar>(Point(j + 1, i + 1));
+
+
+				magnitud_anterior = sqrt(pow(valor_x_a, 2) + pow(valor_y_a, 2));
+				magnitud_siguiente = sqrt(pow(valor_x_s, 2) + pow(valor_y_s, 2));
+				if (magnitud > magnitud_anterior && magnitud > magnitud_siguiente) {
+					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud));
+
+				}
+			}
+			else if (direccion <= tan(-22.5) && direccion > tan(-67.5)) {//diagonal 
+				//diagonal derecha-abajo, diagonal izquierda-arriba
+				//valores anteriores
+				valor_x_a = x.at<uchar>(Point(j - 1, i + 1));
+				valor_y_a = y.at<uchar>(Point(j - 1, i + 1));
+				//valores siguientes
+				valor_x_s = x.at<uchar>(Point(j + 1, i - 1));
+				valor_y_s = y.at<uchar>(Point(j + 1, i - 1));
+
+
+				magnitud_anterior = sqrt(pow(valor_x_a, 2) + pow(valor_y_a, 2));
+				magnitud_siguiente = sqrt(pow(valor_x_s, 2) + pow(valor_y_s, 2));
+				if (magnitud > magnitud_anterior && magnitud > magnitud_siguiente) {
+					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud));
+
+				}
+			}
+			else {
+				//valores anteriores
+				valor_x_a = x.at<uchar>(Point(j - 1, i + 1));
+				valor_y_a = y.at<uchar>(Point(j - 1, i + 1));
+				//valores siguientes
+				valor_x_s = x.at<uchar>(Point(j, i + 1));
+				valor_y_s = y.at<uchar>(Point(j, i + 1));
+
+
+				magnitud_anterior = sqrt(pow(valor_x_a, 2) + pow(valor_y_a, 2));
+				magnitud_siguiente = sqrt(pow(valor_x_s, 2) + pow(valor_y_s, 2));
+				if (magnitud > magnitud_anterior && magnitud > magnitud_siguiente) {
+					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud));
+
+				}
+			}
+		}
+	}
+	return vecinos;
+}
+
 Mat filtroSobel(Mat imagenGaus) {
 
 	double ** kernel_x = new double* [3];
@@ -366,18 +459,21 @@ Mat filtroSobel(Mat imagenGaus) {
 
 	Mat filtro_total = sobelXY(gx,gy);
 
+	Mat otra = canny(gx, gy); 
+
 
 	mostrarImagen(gx); 
 	mostrarImagen(gy);
 
 	mostrarImagen(filtro_total);
-
+	mostrarImagen(otra);
 
 
 	return bordeada; 
 
 
 }
+
 
 int main() {
 
