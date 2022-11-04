@@ -2,5 +2,5 @@
 D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(202,9): warning C4101: 'rojo': variable local sin referencia
 D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(202,21): warning C4101: 'verde': variable local sin referencia
 D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(202,15): warning C4101: 'azul': variable local sin referencia
-D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(537,9): warning C4101: 'valor': variable local sin referencia
+D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(538,9): warning C4101: 'valor': variable local sin referencia
   practica3.vcxproj -> D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\x64\Debug\practica3.exe
