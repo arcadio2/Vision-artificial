@@ -381,8 +381,8 @@ Mat canny(Mat x, Mat y) {
 				magnitud_siguiente = sqrt(pow(valor_x_s, 2) + pow(valor_y_s, 2));
 
 				if (magnitud > magnitud_anterior && magnitud > magnitud_siguiente) {
-
-					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud));
+					int magnitud_f = (magnitud_anterior + magnitud_siguiente) / 2;
+					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud_f));
 
 				}
 
@@ -400,7 +400,8 @@ Mat canny(Mat x, Mat y) {
 				magnitud_anterior = sqrt(pow(valor_x_a, 2) + pow(valor_y_a, 2));
 				magnitud_siguiente = sqrt(pow(valor_x_s, 2) + pow(valor_y_s, 2));
 				if (magnitud > magnitud_anterior && magnitud > magnitud_siguiente) {
-					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud));
+					int magnitud_f = (magnitud_anterior + magnitud_siguiente) / 2;
+					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud_f));
 
 				}
 			}
@@ -417,7 +418,10 @@ Mat canny(Mat x, Mat y) {
 				magnitud_anterior = sqrt(pow(valor_x_a, 2) + pow(valor_y_a, 2));
 				magnitud_siguiente = sqrt(pow(valor_x_s, 2) + pow(valor_y_s, 2));
 				if (magnitud > magnitud_anterior && magnitud > magnitud_siguiente) {
-					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud));
+					
+					int magnitud_f = (magnitud_anterior + magnitud_siguiente) / 2; 
+
+					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud_f));
 
 				}
 			}
@@ -433,7 +437,8 @@ Mat canny(Mat x, Mat y) {
 				magnitud_anterior = sqrt(pow(valor_x_a, 2) + pow(valor_y_a, 2));
 				magnitud_siguiente = sqrt(pow(valor_x_s, 2) + pow(valor_y_s, 2));
 				if (magnitud > magnitud_anterior && magnitud > magnitud_siguiente) {
-					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud));
+					int magnitud_f = (magnitud_anterior + magnitud_siguiente) / 2;
+					vecinos.at<uchar>(Point(j, i)) = uchar(static_cast<int>(magnitud_f));
 
 				}
 			}
@@ -643,14 +648,14 @@ int main() {
 	Mat sobel = sobel_imgs[2];
 	Mat canny_img = sobel_imgs[3];
 
-	Mat umbralada = umbralado(sobel, 50, 30); //canny o sobel
+	Mat umbralada = umbralado(sobel, 50, 50); //canny o sobel
 
 	Mat umbralada_final = umbral_final(umbralada, 250);
 
 
-	Mat umbralada_canny = umbralado(canny_img, 50, 30); //canny o sobel
+	Mat umbralada_canny = umbralado(canny_img, 90, 25); //canny o sobel
 
-	Mat umbralada_final_canny = umbral_final(umbralada_canny, 240);
+	Mat umbralada_final_canny = umbral_final(umbralada_canny, 100);
 
 	//umbralada_final = umbral_final(umbralada_final, 200);
 

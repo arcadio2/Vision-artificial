@@ -1,7 +1,11 @@
 ﻿  imagen.cpp
-D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(154,20): warning C4244: 'inicializando': conversión de 'double' a 'int'; posible pérdida de datos
-D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(204,9): warning C4101: 'rojo': variable local sin referencia
-D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(204,21): warning C4101: 'verde': variable local sin referencia
-D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(204,15): warning C4101: 'azul': variable local sin referencia
-D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(571,9): warning C4101: 'valor': variable local sin referencia
+D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(155,20): warning C4244: 'inicializando': conversión de 'double' a 'int'; posible pérdida de datos
+D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(205,9): warning C4101: 'rojo': variable local sin referencia
+D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(205,21): warning C4101: 'verde': variable local sin referencia
+D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(205,15): warning C4101: 'azul': variable local sin referencia
+D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(384,21): warning C4244: 'inicializando': conversión de 'double' a 'int'; posible pérdida de datos
+D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(403,21): warning C4244: 'inicializando': conversión de 'double' a 'int'; posible pérdida de datos
+D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(422,21): warning C4244: 'inicializando': conversión de 'double' a 'int'; posible pérdida de datos
+D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(440,21): warning C4244: 'inicializando': conversión de 'double' a 'int'; posible pérdida de datos
+D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\practica3\imagen.cpp(578,9): warning C4101: 'valor': variable local sin referencia
   practica3.vcxproj -> D:\Documentos_D\Escuela\quinto\VA\practicas\practica3\x64\Debug\practica3.exe
