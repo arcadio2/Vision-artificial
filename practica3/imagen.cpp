@@ -610,6 +610,7 @@ int main() {
 
 	Mat umbralada_final = umbral_final(umbralada, 250);
 
+
 	Mat umbralada_canny = umbralado(canny_img, 50, 30); //canny o sobel
 
 	Mat umbralada_final_canny = umbral_final(umbralada_canny, 240);
@@ -644,16 +645,16 @@ int main() {
 
 	waitKey(0);
 
-	imshow("Umbralada", umbralada);
-	printf("Umbralada: %dx%d\n", umbralada.cols, umbralada.rows);
+	imshow("Umbralada sobel", umbralada);
+	printf("Umbralada sobel: %dx%d\n", umbralada.cols, umbralada.rows);
 
-	imshow("Umbralada final", umbralada_final);
-	printf("Umbralada final: %dx%d\n", umbralada_final.cols, umbralada_final.rows);
+	imshow("Umbralada final sobel", umbralada_final);
+	printf("Umbralada final sobel: %dx%d\n", umbralada_final.cols, umbralada_final.rows);
 
-	imshow("Umbralada con canny", umbralada);
+	imshow("Umbralada con canny", umbralada_canny);
 	printf("Umbralada con canny: %dx%d\n", umbralada_canny.cols, umbralada_canny.rows);
 
-	imshow("Umbralada final canny", umbralada_final);
+	imshow("Umbralada final canny", umbralada_final_canny);
 	printf("Umbralada final canny: %dx%d\n", umbralada_final_canny.cols, umbralada_final_canny.rows);
 
 	waitKey(0);
